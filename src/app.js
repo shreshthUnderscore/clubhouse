@@ -4,16 +4,21 @@ const session = require("express-session");
 const passport = require("passport");
 const bcrypt = require("bcryptjs");
 const localStrategy = require("passport-local").Strategy;
+const pgSession = require("connect-pg-simple")(session);
 const pool = require("./db/pool");
 const db = require("./db/queries");
 const mainRouter = require("./routes/mainRouter");
 const signupRouter = require("./routes/signupRouter");
 const loginRouter = require("./routes/loginRouter");
+const logoutRouter = require("./routes/logoutRouter");
 const app = express();
 app.set("view engine", "ejs");
 
 app.use(
   session({
+    store: new pgSession({
+      pool: pool,
+    }),
     secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
@@ -65,6 +70,7 @@ passport.deserializeUser(async (id, done) => {
 app.use("/", mainRouter);
 app.use("/sign-up", signupRouter);
 app.use("/login", loginRouter);
+app.use("/logout", logoutRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server Running on Port ${process.env.PORT}`);
